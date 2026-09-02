@@ -329,16 +329,16 @@ Challenge:
 Solution:
 Bash
 
-# Create a temporary workspace
+ Create a temporary workspace
 mkdir /tmp/bandit12_work && cd /tmp/bandit12_work
 cp ~/data.txt .
 
-# Convert hexdump back to binary
+ Convert hexdump back to binary
 xxd -r data.txt > data.bin
 
-# Inspect file type and decompress iteratively based on file format
+ Inspect file type and decompress iteratively based on file format
 file data.bin
-# (Repeat checking with 'file' and decompressing with gzip -d, bzip2 -d, or tar -xf)
+ (Repeat checking with 'file' and decompressing with gzip -d, bzip2 -d, or tar -xf)
 
 Explanation:
 
@@ -348,7 +348,7 @@ Explanation:
 
     Renaming the files to appropriate extensions (.gz, .bz2, .tar) allows tools like gzip, bzip2, and tar to decompress each layer until reaching plaintext
 
-Password: [password here]
+Password: qQYQiHOBPR8zR61qxYqX45quvihF2uzk
 
 What I learned: Reversing hexdumps using xxd -r and peeling back nested compression formats iteratively with file, gzip, bzip2, and tar.
 
