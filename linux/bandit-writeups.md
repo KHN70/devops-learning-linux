@@ -353,3 +353,41 @@ Password: qQYQiHOBPR8zR61qxYqX45quvihF2uzk
 What I learned: Reversing hexdumps using xxd -r and peeling back nested compression formats iteratively with file, gzip, bzip2, and tar.
 
 *******************************************************************
+
+Bandit Level 13 → Level 14
+
+Challenge:
+
+    The password for the next level is stored in /etc/bandit_pass/bandit14
+
+    Only user bandit14 can read it, but a private SSH key is provided in sshkey.private
+
+Solution:
+
+You must copy the private key from bandit13 and log out then create a file with the private key inside and then use the commands below
+Bash
+
+ssh -i key bandit14@localhost -p 2220
+cat /etc/bandit_pass/bandit14
+
+Explanation:
+
+    ssh -i sshkey.private uses the provided private key to authenticate instead of a password
+
+    localhost connects to the same server locally on port 2220
+
+    cat /etc/bandit_pass/bandit14 retrieves the stored password once logged in as user bandit14
+
+Password: aaWecNkG4FhxJQxz07uiwzVP6bJiYS65
+
+What I learned: Using private SSH keys (ssh -i) for key-based authentication without relying on password logins.
+
+*******************************************************************
+
+
+
+********************************************************************
+
+
+
+**********************************************************************
