@@ -384,10 +384,174 @@ What I learned: Using private SSH keys (ssh -i) for key-based authentication wit
 
 *******************************************************************
 
+Bandit Level 14 → Level 15
 
+Challenge:
+
+    The password for the next level can be retrieved by submitting the password of the current level to port 30000 on localhost
+
+Solution:
+Bash
+
+Using Netcat
+nc localhost 30000
+# (Paste the Bandit 14 password and press Enter)
+
+Explanation:
+
+    nc localhost 30000 opens a raw TCP network socket connection to port 30000 on the local machine
+
+    Sending the Bandit 14 password over the established network socket returns the next password from the listening service
+
+Password: pbLYuZtTg4MgaqfJx8jbA9gKKGqM68A7
+
+What I learned: Interacting directly with network services and sending raw TCP payloads using nc (Netcat).
 
 ********************************************************************
 
+Bandit Level 15 → Level 16
 
+Challenge:
+
+    The password for the next level can be retrieved by submitting the current level's password to port 30001 on localhost using SSL/TLS encryption
+
+Solution:
+Bash
+
+openssl s_client -connect localhost:30001
+(Paste the Bandit 15 password and press Enter)
+
+Explanation:
+
+    openssl s_client establishes an encrypted SSL/TLS connection to the target server
+
+    -connect localhost:30001 specifies the encrypted port to connect to, handling the SSL handshake before transmitting the password
+
+Password: kS0Hf0u5HiXFwKMKFqXvPdOTNGGa0X8V
+
+What I learned: Connecting and communicating securely over SSL/TLS-encrypted ports using openssl s_client.
+
+**********************************************************************
+
+Bandit Level 16 → Level 17
+
+Challenge:
+
+    The credentials for the next level can be retrieved by submitting the password of the current level to a port on localhost in the range 31000 to 32000.
+
+    Find which port has a server listening on it and speaks SSL/TLS.
+
+    Only one of them will respond with credentials (which will be an SSH private key).
+
+Solution:
+Bash
+
+ 1. Scan the port range to find open SSL services
+nmap -p 31000-32000 --open -sV localhost
+
+ 2. Connect to the correct SSL port (e.g. port 31790) and send credentials
+openssl s_client -quiet -connect localhost:31790
+ (Paste Bandit 16 password and press Enter to receive the private RSA key)
+
+3. Save the private key to a temporary directory and secure its permissions
+mkdir -p /tmp/bandit17_key && cd /tmp/bandit17_key
+nano key.private
+chmod 600 key.private
+
+ 4. Connect to bandit17 using the key
+ssh -i key.private bandit17@localhost -p 2220
+
+Explanation:
+
+    nmap -p 31000-32000 --open -sV localhost scans the port range to identify active listening services and detects which service speaks SSL.
+
+    openssl s_client -quiet -connect localhost:<port> establishes an encrypted SSL handshake and sends the password.
+
+    The server responds with an RSA private key instead of a password string.
+
+    chmod 600 key.private sets read/write permissions for the current user only; SSH will reject private keys that are too permissive.
+
+Password: pWXMAZoxGC8JmDMfmT5MGEsobMM3vnj2
+
+What I learned: Port scanning with nmap, interacting with SSL/TLS services, and setting correct file permissions (chmod 600) to authenticate using an SSH private key.
+
+**********************************************************************
+
+Bandit Level 17 → Level 18
+
+Challenge:
+
+    There are two files in the home directory: passwords.old and passwords.new.
+
+    The password for the next level is in passwords.new and is the only line that has been changed between the two files.
+
+Solution:
+Bash
+
+diff passwords.old passwords.new --suppress-common-lines
+
+Explanation:
+
+    diff compares two files line by line and highlights the differences between them.
+
+    Lines prefixed with < are unique to passwords.old, while lines prefixed with > show the changed/new entry in passwords.new.
+
+    --suppress-common-lines only outputs the lines that are different between the two files
+
+Password: OQxXZjELndr90zuhOTDYBEomI0SZITXI
+
+What I learned: Comparing file modifications and tracking version changes using the diff utility.
+
+**********************************************************************
+
+Bandit Level 18 → Level 19
+
+Challenge:
+
+    The password for the next level is stored in a file named readme in the home directory.
+
+    The .bashrc file has been modified to log you out immediately upon connecting via SSH.
+
+Solution:
+Bash
+
+# Execute the command directly through SSH without spawning an interactive login shell
+ssh bandit18@bandit.labs.overthewire.org -p 2220 cat readme
+
+Explanation:
+
+    Specifying a command (cat readme) at the end of the ssh command instructs the SSH daemon to run that single non-interactive command directly instead of launching an interactive login shell.
+
+    Because an interactive shell is not initialized, the modified .bashrc script is bypassed, allowing standard output to return the file contents directly before the connection closes.
+
+Password: KpsOfPkcP7i1FlIExk2QEjyt6dw8dxZI
+
+What I learned: Bypassing restrictive login startup scripts by executing remote non-interactive commands directly via SSH.
+
+**********************************************************************
+
+Bandit Level 19 → Level 20
+
+Challenge:
+
+    To gain access to the next level, inspect the SetUID binary named bandit20-do located in the home directory.
+
+    Find out how to use it to execute commands as user bandit20.
+
+Solution:
+Bash
+
+ls -la
+./bandit20-do cat /etc/bandit_pass/bandit20
+
+Explanation:
+
+    ls -la reveals that bandit20-do has the SetUID (SUID) bit set (-rwsr-x---), meaning the executable runs with the effective privileges of its owner (bandit20).
+
+    Running ./bandit20-do <command> executes any provided command with the elevated permissions of bandit20, allowing direct read access to /etc/bandit_pass/bandit20.
+
+Password: 4pIjcunZ0fK2vmp3IwfG8Vf7VhxD6pOA
+
+What I learned: Understanding SUID (Set Owner User ID) binary permissions and how privilege elevation works in Unix systems.
 
 **********************************************************************
